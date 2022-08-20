@@ -1,0 +1,11 @@
+server:
+  port: 38010
+  servlet:
+    context-path: /at-admin
+
+spring:
+  application:
+    name: wx_at_atp_api_web
+  profiles:
+    active: dev
+
