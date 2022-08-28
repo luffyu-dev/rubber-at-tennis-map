@@ -1,5 +1,5 @@
 server:
-  port: 38010
+  port: 38021
   servlet:
     context-path: /at-admin
 
