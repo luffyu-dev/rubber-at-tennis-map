@@ -5,6 +5,7 @@ import com.rubber.at.tennis.map.api.TennisCourtMapQueryApi;
 import com.rubber.at.tennis.map.api.dto.CourtMapApplyDto;
 import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
 import com.rubber.at.tennis.map.service.apply.TennisCourtMapApplyService;
+import com.rubber.base.components.util.annotation.NeedLogin;
 import com.rubber.base.components.util.result.ResultMsg;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +32,7 @@ public class TennisCourtMapApplyController {
     /**
      * 查询距离
      */
+    @NeedLogin
     @PostMapping("/submit/report")
     public ResultMsg search(@RequestBody CourtMapApplyDto dto){
         return tennisCourtMapApplyApi.reportMap(dto);
