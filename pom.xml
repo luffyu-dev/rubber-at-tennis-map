@@ -18,6 +18,7 @@
 
     <properties>
         <rubber-server-archetype.version>1.0-SNAPSHOT</rubber-server-archetype.version>
+        <hutool.version>5.8.5</hutool.version>
     </properties>
 
 

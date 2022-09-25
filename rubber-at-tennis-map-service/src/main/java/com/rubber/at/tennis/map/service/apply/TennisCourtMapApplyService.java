@@ -39,7 +39,7 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
     public ResultMsg reportMap(CourtMapApplyDto applyModel) {
         TennisCourtMapEntity courtMap = new TennisCourtMapEntity();
         BeanUtils.copyProperties(applyModel,courtMap);
-        courtMap.setCourtCode(PREFIX + IdUtil.fastSimpleUUID());
+        courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
         courtMap.setStatus(CourtMapStatusEnums.APPROVEING.getStatus());
         courtMap.setReporter(String.valueOf(applyModel.getUid()));
         courtMap.setCreateTime(new Date());
