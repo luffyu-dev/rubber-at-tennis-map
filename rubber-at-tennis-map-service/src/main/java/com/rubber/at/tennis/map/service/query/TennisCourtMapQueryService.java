@@ -10,12 +10,15 @@ import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
 import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
 import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
+import com.rubber.at.tennis.map.dao.entity.UserCollectCourtEntity;
+import com.rubber.at.tennis.map.service.apply.UserCollectCourtService;
 import lombok.extern.slf4j.Slf4j;
 import org.gavaghan.geodesy.Ellipsoid;
 import org.gavaghan.geodesy.GeodeticCalculator;
 import org.gavaghan.geodesy.GeodeticCurve;
 import org.gavaghan.geodesy.GlobalCoordinates;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,6 +38,9 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
     @Resource
     private ITennisCourtMapDal iTennisCourtMapDal;
 
+    @Autowired
+    private UserCollectCourtService userCollectMapService;
+
     /**
      * 通过地区搜索附近的地图
      *
@@ -48,6 +54,7 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         page.setSize(queryModel.getSize());
         page.setSearchCount(false);
 
+        // 查询分页数据
         LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
         lqw.eq(TennisCourtMapEntity::getProvince,queryModel.getProvince())
                 .eq(TennisCourtMapEntity::getCity,queryModel.getCity())
@@ -56,7 +63,14 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
             lqw.eq(TennisCourtMapEntity::getDistrict,queryModel.getDistrict());
         }
         iTennisCourtMapDal.page(page,lqw);
-        return handlerMapResult(queryModel,page.getRecords());
+
+        // 查询已经全部的球场信息
+        List<String> collectedCourt = new ArrayList<>();
+        if (queryModel.getUid() != null){
+            collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
+        }
+
+        return handlerMapResult(queryModel,page.getRecords(),collectedCourt);
     }
 
     /**
@@ -73,7 +87,12 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         if (data == null){
             return null;
         }
-        return convertToDto(data,request);
+        TennisCourtMapDto dto = convertToDto(data,request);
+        if (request.getUid() != null){
+            UserCollectCourtEntity userCollect = userCollectMapService.getUserCollectInfo(request, request.getCourtCode());
+            dto.setCollected(userCollect != null && userCollect.getStatus() == 1);
+        }
+        return dto;
     }
 
 
@@ -83,14 +102,24 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
      * @param mapList
      * @return
      */
-    private List<TennisCourtMapDto>  handlerMapResult(RegionQueryRequest queryModel,List<TennisCourtMapEntity> mapList ){
+    private List<TennisCourtMapDto>  handlerMapResult(RegionQueryRequest queryModel,List<TennisCourtMapEntity> mapList ,List<String> collectedCourt){
         if (CollUtil.isEmpty(mapList)){
             return new ArrayList<>();
         }
-        return mapList.stream().map(i->convertToDto(i,queryModel)).sorted(Comparator.comparing(TennisCourtMapDto::getLbsDistance)).collect(Collectors.toList());
+        return mapList.stream().map(i->convertToDto(i,queryModel,collectedCourt))
+                .sorted(Comparator.comparing(TennisCourtMapDto::getLbsDistance))
+                .collect(Collectors.toList());
     }
 
 
+
+    private TennisCourtMapDto convertToDto(TennisCourtMapEntity courtMapEntity,RegionQueryRequest queryModel,List<String> collectedCourt){
+        TennisCourtMapDto dto = convertToDto(courtMapEntity,queryModel);
+        if (CollUtil.isNotEmpty(collectedCourt) && collectedCourt.contains(dto.getCourtCode())){
+            dto.setCollected(true);
+        }
+        return dto;
+    }
 
     private TennisCourtMapDto convertToDto(TennisCourtMapEntity courtMapEntity,RegionQueryRequest queryModel){
         TennisCourtMapDto dto = new TennisCourtMapDto();

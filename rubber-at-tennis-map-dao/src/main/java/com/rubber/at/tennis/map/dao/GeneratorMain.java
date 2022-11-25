@@ -18,7 +18,7 @@ public class GeneratorMain extends MybatisBaseCodeGenerator {
         configBean.setUserName("root");
         configBean.setPassword("root");
         GeneratorMain codeGenerator = new GeneratorMain(configBean);
-        codeGenerator.create("t_tennis_court_map");
+        codeGenerator.create("t_user_collect_map");
     }
 
 }

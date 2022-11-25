@@ -134,24 +134,9 @@ public class TennisCourtMapDto {
     private String remark;
 
     /**
-     * 版本号
-     */
-    private Integer version;
-
-    /**
      * 状态 10表示初始化 20表示待审核 30表示审核不通过 50表示审核通过
      */
     private Integer status;
-
-    /**
-     * 创建时间
-     */
-    private Date createTime;
-
-    /**
-     * 最后一次更新时间
-     */
-    private Date updateTime;
 
 
     /**
@@ -159,4 +144,10 @@ public class TennisCourtMapDto {
      * 单位是米
      */
     private Integer lbsDistance = 0;
+
+
+    /**
+     * 是否收藏了球场
+     */
+    private boolean collected;
 }

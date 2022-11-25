@@ -4,6 +4,7 @@ import cn.hutool.core.util.IdUtil;
 import com.rubber.at.tennis.map.api.TennisCourtMapApplyApi;
 import com.rubber.at.tennis.map.api.dto.CourtMapApplyDto;
 import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
+import com.rubber.at.tennis.map.api.request.RegionCodeRequest;
 import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
 import com.rubber.base.components.util.result.ResultMsg;
@@ -25,6 +26,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
     @Autowired
     private ITennisCourtMapDal iTennisCourtMapDal;
 
+    @Autowired
+    private UserCollectCourtService userCollectMapService;
+
     private static final String PREFIX = "TCM";
 
 
@@ -35,7 +39,7 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
      * @return 返回是否成功
      */
     @Override
-    public ResultMsg reportMap(CourtMapApplyDto applyModel) {
+    public ResultMsg reportCourt(CourtMapApplyDto applyModel) {
         TennisCourtMapEntity courtMap = new TennisCourtMapEntity();
         BeanUtils.copyProperties(applyModel,courtMap);
         courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
@@ -47,5 +51,28 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
         return ResultMsg.success();
     }
 
+    /**
+     * 关注球场
+     *
+     * @param request 当前的请求
+     * @return 返回是否成功
+     */
+    @Override
+    public ResultMsg collectCourt(RegionCodeRequest request) {
+        userCollectMapService.collectCourt(request);
+        return new ResultMsg();
+    }
+
+    /**
+     * 取消关注
+     *
+     * @param request 当前的请求
+     * @return 返回是否成功
+     */
+    @Override
+    public ResultMsg unCollectCourt(RegionCodeRequest request) {
+        userCollectMapService.unCollectCourt(request);
+        return new ResultMsg();
+    }
 
 }

@@ -2,6 +2,7 @@ package com.rubber.at.tennis.map.service.controller;
 
 import com.rubber.at.tennis.map.api.TennisCourtMapApplyApi;
 import com.rubber.at.tennis.map.api.dto.CourtMapApplyDto;
+import com.rubber.at.tennis.map.api.request.RegionCodeRequest;
 import com.rubber.base.components.util.annotation.NeedLogin;
 import com.rubber.base.components.util.result.ResultMsg;
 import org.springframework.stereotype.Component;
@@ -31,8 +32,30 @@ public class TennisCourtMapApplyController {
      */
     @NeedLogin
     @PostMapping("/submit/report")
-    public ResultMsg search(@RequestBody CourtMapApplyDto dto){
-        return tennisCourtMapApplyApi.reportMap(dto);
+    public ResultMsg reportCourt(@RequestBody CourtMapApplyDto dto){
+        return tennisCourtMapApplyApi.reportCourt(dto);
+    }
+
+
+
+
+    /**
+     * 收藏球场
+     */
+    @NeedLogin
+    @PostMapping("/collect")
+    public ResultMsg collect(@RequestBody RegionCodeRequest request){
+        return tennisCourtMapApplyApi.collectCourt(request);
+    }
+
+
+    /**
+     * 取消收藏球场
+     */
+    @NeedLogin
+    @PostMapping("/uncollect")
+    public ResultMsg uncollect(@RequestBody RegionCodeRequest request){
+        return tennisCourtMapApplyApi.unCollectCourt(request);
     }
 
 
