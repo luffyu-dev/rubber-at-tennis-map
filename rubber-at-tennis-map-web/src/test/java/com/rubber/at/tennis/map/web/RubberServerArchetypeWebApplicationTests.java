@@ -31,7 +31,7 @@ public class RubberServerArchetypeWebApplicationTests {
         RegionCodeRequest codeRequest = new RegionCodeRequest();
         codeRequest.setUid(100000);
         codeRequest.setCourtCode("TCMcfbdcd08452c4242b2c1dd29b897718d");
-        tennisCourtMapApplyApi.collectMap(codeRequest);
+        tennisCourtMapApplyApi.collectCourt(codeRequest);
 
         RegionQueryRequest request = new RegionQueryRequest();
         request.setUid(100000);
@@ -43,7 +43,7 @@ public class RubberServerArchetypeWebApplicationTests {
         TennisCourtMapDto byCode = tennisCourtMapQueryApi.getByCode(request);
 
 
-        tennisCourtMapApplyApi.unCollectMap(codeRequest);
+        tennisCourtMapApplyApi.unCollectCourt(codeRequest);
 
         List<TennisCourtMapDto> tennisCourtMapDtos2 = tennisCourtMapQueryApi.searchByRegion(request);
 
