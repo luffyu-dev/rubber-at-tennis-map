@@ -44,4 +44,14 @@ public class RegionQueryRequest extends BaseRequestPage {
      * 场地所在经度
      */
     private String longitude;
+
+    /**
+     * 是否只查询关注的
+     */
+    private boolean justCollect;
+
+    /**
+     * 球场名称
+     */
+    private String courtName;
 }

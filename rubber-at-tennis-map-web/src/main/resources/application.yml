@@ -1,7 +1,7 @@
 server:
   port: 38021
   servlet:
-    context-path: /at-admin
+    context-path: /at-api
 
 spring:
   application:

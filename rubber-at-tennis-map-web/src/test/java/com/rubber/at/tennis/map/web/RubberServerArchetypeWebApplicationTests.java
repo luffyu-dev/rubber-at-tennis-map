@@ -1,10 +1,14 @@
 package com.rubber.at.tennis.map.web;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rubber.at.tennis.map.api.TennisCourtMapApplyApi;
 import com.rubber.at.tennis.map.api.TennisCourtMapQueryApi;
 import com.rubber.at.tennis.map.api.dto.TennisCourtMapDto;
 import com.rubber.at.tennis.map.api.request.RegionCodeRequest;
 import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
+import com.rubber.at.tennis.map.dao.condition.UserTennisCourtCondition;
+import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
+import com.rubber.at.tennis.map.dao.mapper.TennisCourtMapMapper;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,4 +55,22 @@ public class RubberServerArchetypeWebApplicationTests {
 
     }
 
+
+    @Autowired
+    private TennisCourtMapMapper tennisCourtMapMapper;
+
+    @Test
+    public void doTest2(){
+        Page<TennisCourtMapEntity> p = new Page<>();
+        p.setCurrent(1);
+        p.setSize(2);
+        p.setSearchCount(false);
+
+        UserTennisCourtCondition courtCondition = new UserTennisCourtCondition();
+        courtCondition.setUid(100000);
+
+        Page<TennisCourtMapEntity> hh = tennisCourtMapMapper.queryCollectPage(p, courtCondition);
+        System.out.println(hh);
+
+    }
 }

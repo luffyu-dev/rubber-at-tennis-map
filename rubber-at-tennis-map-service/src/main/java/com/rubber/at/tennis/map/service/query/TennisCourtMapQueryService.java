@@ -8,6 +8,7 @@ import com.rubber.at.tennis.map.api.TennisCourtMapQueryApi;
 import com.rubber.at.tennis.map.api.dto.TennisCourtMapDto;
 import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
 import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
+import com.rubber.at.tennis.map.dao.condition.UserTennisCourtCondition;
 import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
 import com.rubber.at.tennis.map.dao.entity.UserCollectCourtEntity;
@@ -49,6 +50,16 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
      */
     @Override
     public List<TennisCourtMapDto> searchByRegion(RegionQueryRequest queryModel) {
+        if (queryModel.isJustCollect()){
+            return queryUserCollectCourt(queryModel);
+        }
+        return searchByRegionValue(queryModel);
+    }
+
+    /**
+     * 搜索查询
+     */
+    public List<TennisCourtMapDto> searchByRegionValue(RegionQueryRequest queryModel) {
         Page<TennisCourtMapEntity> page = new Page<>();
         page.setCurrent(queryModel.getPage());
         page.setSize(queryModel.getSize());
@@ -59,8 +70,8 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         lqw.eq(TennisCourtMapEntity::getProvince,queryModel.getProvince())
                 .eq(TennisCourtMapEntity::getCity,queryModel.getCity())
                 .eq(TennisCourtMapEntity::getStatus, CourtMapStatusEnums.ON.getStatus());
-        if (StrUtil.isNotEmpty(queryModel.getDistrict())){
-            lqw.eq(TennisCourtMapEntity::getDistrict,queryModel.getDistrict());
+        if (StrUtil.isNotEmpty(queryModel.getCourtName())){
+            lqw.like(TennisCourtMapEntity::getCourtName,queryModel.getCourtName());
         }
         iTennisCourtMapDal.page(page,lqw);
 
@@ -72,6 +83,37 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
 
         return handlerMapResult(queryModel,page.getRecords(),collectedCourt);
     }
+
+    /**
+     * 查询用户关注的球场
+     */
+    public List<TennisCourtMapDto> queryUserCollectCourt(RegionQueryRequest queryModel) {
+        Page<TennisCourtMapEntity> page = new Page<>();
+        page.setCurrent(queryModel.getPage());
+        page.setSize(queryModel.getSize());
+        page.setSearchCount(false);
+
+        UserTennisCourtCondition condition = new UserTennisCourtCondition();
+        condition.setUid(queryModel.getUid());
+        condition.setCourtName(queryModel.getCourtName());
+        iTennisCourtMapDal.queryCollectPage(page,condition);
+
+        if (CollUtil.isEmpty(page.getRecords())){
+            return new ArrayList<>();
+        }
+        return page.getRecords().stream().map(i->{
+            TennisCourtMapDto courtMapDto = convertToDto(i,queryModel);
+            courtMapDto.setCollected(true);
+            return courtMapDto;
+        }).collect(Collectors.toList());
+    }
+
+
+
+
+
+
+
 
     /**
      * 查询某个地图详情

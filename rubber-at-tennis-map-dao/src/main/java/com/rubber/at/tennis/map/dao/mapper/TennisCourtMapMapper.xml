@@ -2,4 +2,48 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.rubber.at.tennis.map.dao.mapper.TennisCourtMapMapper">
 
+    <resultMap id="baseMap" type="com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity">
+        <result column="Fid" property="id" jdbcType="INTEGER"/>
+        <result column="Fcourt_code" property="courtCode" jdbcType="VARCHAR"/>
+        <result column="Fcourt_name" property="courtName" jdbcType="VARCHAR"/>
+        <result column="Fhome_image" property="homeImage" jdbcType="VARCHAR"/>
+        <result column="Fenv_image" property="envImage" jdbcType="VARCHAR"/>
+        <result column="Fprice_image" property="priceImage" jdbcType="VARCHAR"/>
+        <result column="Fcourt_type" property="courtType" jdbcType="INTEGER"/>
+        <result column="Fcourt_num" property="courtNum" jdbcType="INTEGER"/>
+        <result column="Fprovince" property="province" jdbcType="VARCHAR"/>
+        <result column="Fcity" property="city" jdbcType="VARCHAR"/>
+        <result column="Fdistrict" property="district" jdbcType="VARCHAR"/>
+        <result column="Faddress" property="address" jdbcType="VARCHAR"/>
+        <result column="Flatitude" property="latitude" jdbcType="VARCHAR"/>
+        <result column="Flongitude" property="longitude" jdbcType="VARCHAR"/>
+        <result column="Fintroduction" property="introduction" jdbcType="VARCHAR"/>
+        <result column="Fopen_hours" property="openHours" jdbcType="VARCHAR"/>
+        <result column="Freserve_type" property="reserveType" jdbcType="INTEGER"/>
+        <result column="Freserve_info" property="reserveInfo" jdbcType="VARCHAR"/>
+        <result column="Fmanager" property="manager" jdbcType="VARCHAR"/>
+        <result column="Freporter" property="reporter" jdbcType="VARCHAR"/>
+        <result column="Fenv_score" property="envScore" jdbcType="INTEGER"/>
+        <result column="Freserve_diff" property="reserveDiff" jdbcType="INTEGER"/>
+        <result column="Fscore" property="score" jdbcType="INTEGER"/>
+        <result column="Fremark" property="remark" jdbcType="VARCHAR"/>
+        <result column="Fversion" property="version" jdbcType="INTEGER"/>
+        <result column="Fstatus" property="status" jdbcType="INTEGER"/>
+        <result column="Fcreate_time" property="createTime" jdbcType="VARCHAR"/>
+        <result column="Fupdate_time" property="updateTime" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+
+    <select id="queryCollectPage" resultMap="baseMap">
+        select  b.*
+        from t_user_collect_court as a
+        left join t_tennis_court_map as b on (a.Fcourt_code = b.Fcourt_code)
+        where  a.Fstatus = 1 and a.Fuid = #{entity.uid}
+        <if test="entity.courtName != null">
+            and Fcourt_name like concat('%',#{entity.courtName},'%')
+        </if>
+        order by a.Fupdate_time desc
+    </select>
+
 </mapper>

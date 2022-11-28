@@ -60,7 +60,7 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
     @Override
     public ResultMsg collectCourt(RegionCodeRequest request) {
         userCollectMapService.collectCourt(request);
-        return new ResultMsg();
+        return ResultMsg.success();
     }
 
     /**
@@ -72,7 +72,7 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
     @Override
     public ResultMsg unCollectCourt(RegionCodeRequest request) {
         userCollectMapService.unCollectCourt(request);
-        return new ResultMsg();
+        return ResultMsg.success();
     }
 
 }
