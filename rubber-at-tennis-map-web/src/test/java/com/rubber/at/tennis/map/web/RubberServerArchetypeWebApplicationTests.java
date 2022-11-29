@@ -9,6 +9,7 @@ import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
 import com.rubber.at.tennis.map.dao.condition.UserTennisCourtCondition;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
 import com.rubber.at.tennis.map.dao.mapper.TennisCourtMapMapper;
+import com.rubber.base.components.util.result.page.ResultPage;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +44,13 @@ public class RubberServerArchetypeWebApplicationTests {
         request.setCity("深圳市");
         request.setCourtCode("TCMcfbdcd08452c4242b2c1dd29b897718d");
 
-        List<TennisCourtMapDto> tennisCourtMapDtos = tennisCourtMapQueryApi.searchByRegion(request);
+        ResultPage<TennisCourtMapDto> tennisCourtMapDtos = tennisCourtMapQueryApi.searchByRegion(request);
         TennisCourtMapDto byCode = tennisCourtMapQueryApi.getByCode(request);
 
 
         tennisCourtMapApplyApi.unCollectCourt(codeRequest);
 
-        List<TennisCourtMapDto> tennisCourtMapDtos2 = tennisCourtMapQueryApi.searchByRegion(request);
+        ResultPage<TennisCourtMapDto> tennisCourtMapDtos2 = tennisCourtMapQueryApi.searchByRegion(request);
 
         TennisCourtMapDto byCode2 = tennisCourtMapQueryApi.getByCode(request);
 

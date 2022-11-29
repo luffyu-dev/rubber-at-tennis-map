@@ -3,6 +3,7 @@ package com.rubber.at.tennis.map.service.query;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rubber.at.tennis.map.api.TennisCourtMapQueryApi;
 import com.rubber.at.tennis.map.api.dto.TennisCourtMapDto;
@@ -13,6 +14,9 @@ import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
 import com.rubber.at.tennis.map.dao.entity.UserCollectCourtEntity;
 import com.rubber.at.tennis.map.service.apply.UserCollectCourtService;
+import com.rubber.base.components.mysql.utils.PageUtils;
+import com.rubber.base.components.util.result.page.BaseRequestPage;
+import com.rubber.base.components.util.result.page.ResultPage;
 import lombok.extern.slf4j.Slf4j;
 import org.gavaghan.geodesy.Ellipsoid;
 import org.gavaghan.geodesy.GeodeticCalculator;
@@ -49,7 +53,7 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
      * @return 球场的基本信息
      */
     @Override
-    public List<TennisCourtMapDto> searchByRegion(RegionQueryRequest queryModel) {
+    public ResultPage<TennisCourtMapDto> searchByRegion(RegionQueryRequest queryModel) {
         if (queryModel.isJustCollect()){
             return queryUserCollectCourt(queryModel);
         }
@@ -59,7 +63,7 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
     /**
      * 搜索查询
      */
-    public List<TennisCourtMapDto> searchByRegionValue(RegionQueryRequest queryModel) {
+    public ResultPage<TennisCourtMapDto> searchByRegionValue(RegionQueryRequest queryModel) {
         Page<TennisCourtMapEntity> page = new Page<>();
         page.setCurrent(queryModel.getPage());
         page.setSize(queryModel.getSize());
@@ -80,14 +84,15 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         if (queryModel.getUid() != null){
             collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
         }
+        List<TennisCourtMapDto> list =  handlerMapResult(queryModel,page.getRecords(),collectedCourt);
+        return PageUtils.convertPageResult(list,page);
 
-        return handlerMapResult(queryModel,page.getRecords(),collectedCourt);
     }
 
     /**
      * 查询用户关注的球场
      */
-    public List<TennisCourtMapDto> queryUserCollectCourt(RegionQueryRequest queryModel) {
+    public ResultPage<TennisCourtMapDto> queryUserCollectCourt(RegionQueryRequest queryModel) {
         Page<TennisCourtMapEntity> page = new Page<>();
         page.setCurrent(queryModel.getPage());
         page.setSize(queryModel.getSize());
@@ -99,13 +104,14 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         iTennisCourtMapDal.queryCollectPage(page,condition);
 
         if (CollUtil.isEmpty(page.getRecords())){
-            return new ArrayList<>();
+            return new ResultPage<>();
         }
-        return page.getRecords().stream().map(i->{
+        List<TennisCourtMapDto> list =  page.getRecords().stream().map(i->{
             TennisCourtMapDto courtMapDto = convertToDto(i,queryModel);
             courtMapDto.setCollected(true);
             return courtMapDto;
         }).collect(Collectors.toList());
+        return PageUtils.convertPageResult(list,page);
     }
 
 
