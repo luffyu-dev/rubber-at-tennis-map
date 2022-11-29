@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
  * Created on 2022/8/13
  */
 @Slf4j
-@Component
 public class DemoSal {
 
 }
