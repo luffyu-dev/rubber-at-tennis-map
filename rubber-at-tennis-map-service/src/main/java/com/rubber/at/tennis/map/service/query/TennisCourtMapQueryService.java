@@ -140,6 +140,8 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
             UserCollectCourtEntity userCollect = userCollectMapService.getUserCollectInfo(request, request.getCourtCode());
             dto.setCollected(userCollect != null && userCollect.getStatus() == 1);
         }
+        //计算距离
+        getDistance(request,dto);
         return dto;
     }
 
