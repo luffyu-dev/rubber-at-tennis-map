@@ -15,6 +15,7 @@ import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
 import com.rubber.at.tennis.map.dao.entity.UserCollectCourtEntity;
 import com.rubber.at.tennis.map.service.apply.UserCollectCourtService;
 import com.rubber.base.components.mysql.utils.PageUtils;
+import com.rubber.base.components.util.LbsUtils;
 import com.rubber.base.components.util.result.page.BaseRequestPage;
 import com.rubber.base.components.util.result.page.ResultPage;
 import lombok.extern.slf4j.Slf4j;
@@ -181,24 +182,12 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
     }
 
 
-
     /**
      * 计算两者直接的距离
      */
     private void getDistance(RegionQueryRequest queryModel,TennisCourtMapDto courtMap){
-        //给定两个坐标系,计算两点相差距离
-        GlobalCoordinates source = new GlobalCoordinates(Double.parseDouble(queryModel.getLatitude()), Double.parseDouble(queryModel.getLongitude()));
-        GlobalCoordinates target = new GlobalCoordinates(Double.parseDouble(courtMap.getLatitude()), Double.parseDouble(courtMap.getLongitude()));
-        //Sphere坐标的计算结果
-        double meter1 =getDistanceMeter(source,target, Ellipsoid.Sphere);
-        //WGS84坐标系计算结果
-        //double meter2 = getDistanceMeter(source,target,Ellipsoid.WGS84);
+        double meter1 = LbsUtils.getDistance(queryModel.getLatitude(),queryModel.getLongitude(),courtMap.getLatitude(),courtMap.getLongitude());
         courtMap.setLbsDistance((int)meter1);
     }
 
-    private double getDistanceMeter(GlobalCoordinates gpsFrom, GlobalCoordinates gpsTo, Ellipsoid ellipsoid){
-        //创建GeodeticCalculator,调用计算方法,传入坐标系,经纬度用于计算距离
-        GeodeticCurve geoCurve = new GeodeticCalculator().calculateGeodeticCurve(ellipsoid, gpsFrom, gpsTo);
-        return geoCurve.getEllipsoidalDistance();
-    }
 }
