@@ -1,8 +1,11 @@
 package com.rubber.at.tennis.map.service.apply;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.rubber.at.tennis.map.api.TennisCourtMapApplyApi;
 import com.rubber.at.tennis.map.api.dto.CourtMapApplyDto;
+import com.rubber.at.tennis.map.api.dto.TennisCourtMapDto;
 import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
 import com.rubber.at.tennis.map.api.request.RegionCodeRequest;
 import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
@@ -41,14 +44,32 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
     @Override
     public ResultMsg reportCourt(CourtMapApplyDto applyModel) {
         TennisCourtMapEntity courtMap = new TennisCourtMapEntity();
-        BeanUtils.copyProperties(applyModel,courtMap);
-        courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
-        courtMap.setStatus(CourtMapStatusEnums.APPROVEING.getStatus());
-        courtMap.setReporter(String.valueOf(applyModel.getUid()));
-        courtMap.setCreateTime(new Date());
-        courtMap.setUpdateTime(new Date());
-        iTennisCourtMapDal.save(courtMap);
-        return ResultMsg.success();
+        if (StrUtil.isNotEmpty(applyModel.getCourtCode())){
+            LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
+            lqw.eq(TennisCourtMapEntity::getCourtCode,applyModel.getCourtCode());
+            courtMap =  iTennisCourtMapDal.getOne(lqw);
+            BeanUtils.copyProperties(applyModel,courtMap,"courtCode");
+            courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
+            courtMap.setUpdateTime(new Date());
+            if (applyModel.getReserveInfo() != null){
+                courtMap.setReserveInfo(applyModel.getReserveInfo().toJSONString());
+            }
+            iTennisCourtMapDal.updateById(courtMap);
+        }else {
+            BeanUtils.copyProperties(applyModel,courtMap);
+            courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
+            courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
+            courtMap.setReporter(String.valueOf(applyModel.getUid()));
+            courtMap.setCreateTime(new Date());
+            courtMap.setUpdateTime(new Date());
+            if (applyModel.getReserveInfo() != null){
+                courtMap.setReserveInfo(applyModel.getReserveInfo().toJSONString());
+            }
+            iTennisCourtMapDal.save(courtMap);
+        }
+        TennisCourtMapDto dto = new TennisCourtMapDto();
+        dto.setCourtCode(courtMap.getCourtCode());
+        return ResultMsg.success(dto);
     }
 
     /**

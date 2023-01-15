@@ -1,8 +1,8 @@
 package com.rubber.at.tennis.map.api.dto;
 
+import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 
-import java.util.Date;
 
 /**
  * @author luffyu
@@ -101,7 +101,7 @@ public class TennisCourtMapDto {
     /**
      * 预定详情
      */
-    private String reserveInfo;
+    private JSONObject reserveInfo;
 
     /**
      * 场地管理员

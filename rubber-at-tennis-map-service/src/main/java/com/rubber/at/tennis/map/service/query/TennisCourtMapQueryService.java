@@ -2,6 +2,7 @@ package com.rubber.at.tennis.map.service.query;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -178,6 +179,9 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         if (queryModel != null && StrUtil.isNotEmpty(queryModel.getLatitude()) && StrUtil.isNotEmpty(queryModel.getLongitude())){
             getDistance(queryModel,dto);
         }
+        if (StrUtil.isNotEmpty(courtMapEntity.getReserveInfo())){
+            dto.setReserveInfo(JSON.parseObject(courtMapEntity.getReserveInfo()));
+        }
         return dto;
     }
 
@@ -186,6 +190,9 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
      * 计算两者直接的距离
      */
     private void getDistance(RegionQueryRequest queryModel,TennisCourtMapDto courtMap){
+        if (StrUtil.isEmpty(queryModel.getLatitude()) || StrUtil.isEmpty(queryModel.getLongitude())){
+            return;
+        }
         double meter1 = LbsUtils.getDistance(queryModel.getLatitude(),queryModel.getLongitude(),courtMap.getLatitude(),courtMap.getLongitude());
         courtMap.setLbsDistance((int)meter1);
     }
