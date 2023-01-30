@@ -9,6 +9,6 @@ rubber:
       db-instances:
         at_tennis_db:
           driverClassName: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://sh-cynosdbmysql-grp-mucajt24.sql.tencentcdb.com:21652/at_tennis?useUnicode=true&characterEncoding=utf8
+          url: jdbc:mysql://10.26.108.182:3306/at_tennis?useUnicode=true&characterEncoding=utf8
           username: root
-          password: rH9eaKGc
+          password: JTg7yyAe

@@ -7,7 +7,7 @@ spring:
   application:
     name: wx_at_atp_api_web
   profiles:
-    active: dev
+    active: master
   jackson:
     date-format:  "yyyy-MM-dd HH:mm:ss"
     time-zone: "GMT+08:00"
