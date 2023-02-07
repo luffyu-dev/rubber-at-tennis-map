@@ -16,7 +16,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author luffyu
@@ -34,6 +37,8 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
 
     private static final String PREFIX = "TCM";
 
+    // 后面需要迁移到库表中
+    private static List<Integer> MANAGER = new ArrayList<>(Arrays.asList(1000001));
 
     /**
      * 上报地图
@@ -43,11 +48,13 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
      */
     @Override
     public ResultMsg reportCourt(CourtMapApplyDto applyModel) {
-        TennisCourtMapEntity courtMap = new TennisCourtMapEntity();
-        if (StrUtil.isNotEmpty(applyModel.getCourtCode())){
-            LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
-            lqw.eq(TennisCourtMapEntity::getCourtCode,applyModel.getCourtCode());
-            courtMap =  iTennisCourtMapDal.getOne(lqw);
+        LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(TennisCourtMapEntity::getCourtCode,applyModel.getCourtCode());
+        TennisCourtMapEntity courtMap =  iTennisCourtMapDal.getOne(lqw);
+        if (courtMap != null){
+            if (!MANAGER.contains(applyModel.getUid()) && !applyModel.getUid().toString().equals(courtMap.getReporter())){
+                return ResultMsg.error("没有权限操作");
+            }
             BeanUtils.copyProperties(applyModel,courtMap,"courtCode");
             courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
             courtMap.setUpdateTime(new Date());
@@ -56,6 +63,7 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
             }
             iTennisCourtMapDal.updateById(courtMap);
         }else {
+            courtMap = new TennisCourtMapEntity();
             BeanUtils.copyProperties(applyModel,courtMap);
             courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
             courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
