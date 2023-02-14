@@ -1,5 +1,7 @@
 package com.rubber.at.tennis.map.service.query;
 
+import cn.hutool.cache.CacheUtil;
+import cn.hutool.cache.impl.FIFOCache;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
@@ -49,6 +51,13 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
     private UserCollectCourtService userCollectMapService;
 
     /**
+     * 地图的缓存
+     * 5分钟
+     */
+    private FIFOCache<String,List<TennisCourtMapDto>> courtCache = CacheUtil.newFIFOCache(10,5 * 60 * 1000);
+
+
+    /**
      * 通过地区搜索附近的地图
      *
      * @param queryModel 当前的请求参数
@@ -66,27 +75,36 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
      * 搜索查询
      */
     public ResultPage<TennisCourtMapDto> searchByRegionValue(RegionQueryRequest queryModel) {
+        String cacheKey = "COURT:" + queryModel.getCity();
+        boolean isNeedCache = StrUtil.isNotEmpty(queryModel.getCourtName());
+        List<TennisCourtMapDto> list = null;
+        if (isNeedCache){
+            list = courtCache.get(cacheKey);
+        }
         Page<TennisCourtMapEntity> page = new Page<>();
         page.setCurrent(queryModel.getPage());
         page.setSize(queryModel.getSize());
         page.setSearchCount(false);
+        if (list == null) {
+            // 查询分页数据
+            LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
+            lqw.eq(TennisCourtMapEntity::getProvince, queryModel.getProvince())
+                    .eq(TennisCourtMapEntity::getCity, queryModel.getCity())
+                    .eq(TennisCourtMapEntity::getStatus, CourtMapStatusEnums.ON.getStatus());
+            if (StrUtil.isNotEmpty(queryModel.getCourtName())) {
+                lqw.like(TennisCourtMapEntity::getCourtName, queryModel.getCourtName());
+            }
+            iTennisCourtMapDal.page(page, lqw);
 
-        // 查询分页数据
-        LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(TennisCourtMapEntity::getProvince,queryModel.getProvince())
-                .eq(TennisCourtMapEntity::getCity,queryModel.getCity())
-                .eq(TennisCourtMapEntity::getStatus, CourtMapStatusEnums.ON.getStatus());
-        if (StrUtil.isNotEmpty(queryModel.getCourtName())){
-            lqw.like(TennisCourtMapEntity::getCourtName,queryModel.getCourtName());
+            // 查询已经全部的球场信息
+            List<String> collectedCourt = new ArrayList<>();
+            if (queryModel.getUid() != null) {
+                collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
+            }
+            list = handlerMapResult(queryModel, page.getRecords(), collectedCourt);
+            courtCache.put(cacheKey,list);
         }
-        iTennisCourtMapDal.page(page,lqw);
 
-        // 查询已经全部的球场信息
-        List<String> collectedCourt = new ArrayList<>();
-        if (queryModel.getUid() != null){
-            collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
-        }
-        List<TennisCourtMapDto> list =  handlerMapResult(queryModel,page.getRecords(),collectedCourt);
         return PageUtils.convertPageResult(list,page);
 
     }
