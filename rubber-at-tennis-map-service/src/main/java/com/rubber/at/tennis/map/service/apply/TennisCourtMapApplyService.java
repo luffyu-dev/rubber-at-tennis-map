@@ -10,6 +10,7 @@ import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
 import com.rubber.at.tennis.map.api.request.RegionCodeRequest;
 import com.rubber.at.tennis.map.dao.dal.ITennisCourtMapDal;
 import com.rubber.at.tennis.map.dao.entity.TennisCourtMapEntity;
+import com.rubber.at.tennis.map.service.query.TennisCourtMapQueryService;
 import com.rubber.base.components.util.result.ResultMsg;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -31,6 +32,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
 
     @Autowired
     private ITennisCourtMapDal iTennisCourtMapDal;
+
+    @Autowired
+    private TennisCourtMapQueryService tennisCourtMapQueryService;
 
     @Autowired
     private UserCollectCourtService userCollectMapService;
@@ -75,6 +79,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
             }
             iTennisCourtMapDal.save(courtMap);
         }
+        // 清除缓存
+        tennisCourtMapQueryService.clearQueryCache(courtMap.getCity());
+
         TennisCourtMapDto dto = new TennisCourtMapDto();
         dto.setCourtCode(courtMap.getCourtCode());
         return ResultMsg.success(dto);

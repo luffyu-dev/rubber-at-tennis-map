@@ -29,6 +29,7 @@ import org.gavaghan.geodesy.GlobalCoordinates;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -52,9 +53,9 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
 
     /**
      * 地图的缓存
-     * 5分钟
+     * 60分钟
      */
-    private FIFOCache<String,List<TennisCourtMapDto>> courtCache = CacheUtil.newFIFOCache(10,5 * 60 * 1000);
+    private FIFOCache<String,List<TennisCourtMapEntity>> courtCache = CacheUtil.newFIFOCache(10,60 * 60 * 1000);
 
 
     /**
@@ -73,39 +74,51 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
 
     /**
      * 搜索查询
+     * 最大支持300条数据搜索
      */
     public ResultPage<TennisCourtMapDto> searchByRegionValue(RegionQueryRequest queryModel) {
         String cacheKey = "COURT:" + queryModel.getCity();
         boolean isNeedCache = StrUtil.isNotEmpty(queryModel.getCourtName());
-        List<TennisCourtMapDto> list = null;
+        List<TennisCourtMapEntity> dbList = null;
         if (isNeedCache){
-            list = courtCache.get(cacheKey);
+            dbList = courtCache.get(cacheKey);
         }
         Page<TennisCourtMapEntity> page = new Page<>();
         page.setCurrent(queryModel.getPage());
-        page.setSize(queryModel.getSize());
+        page.setSize(300);
         page.setSearchCount(false);
-        if (list == null) {
+        if (CollUtil.isEmpty(dbList)) {
             // 查询分页数据
             LambdaQueryWrapper<TennisCourtMapEntity> lqw = new LambdaQueryWrapper<>();
             lqw.eq(TennisCourtMapEntity::getProvince, queryModel.getProvince())
                     .eq(TennisCourtMapEntity::getCity, queryModel.getCity())
                     .eq(TennisCourtMapEntity::getStatus, CourtMapStatusEnums.ON.getStatus());
-            if (StrUtil.isNotEmpty(queryModel.getCourtName())) {
-                lqw.like(TennisCourtMapEntity::getCourtName, queryModel.getCourtName());
-            }
+
             iTennisCourtMapDal.page(page, lqw);
-
-            // 查询已经全部的球场信息
-            List<String> collectedCourt = new ArrayList<>();
-            if (queryModel.getUid() != null) {
-                collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
+            dbList = page.getRecords();
+            if (CollUtil.isNotEmpty(dbList)){
+                courtCache.put(cacheKey,dbList);
             }
-            list = handlerMapResult(queryModel, page.getRecords(), collectedCourt);
-            courtCache.put(cacheKey,list);
         }
-
-        return PageUtils.convertPageResult(list,page);
+        // 名称过滤
+        if (CollUtil.isNotEmpty(dbList) && StrUtil.isNotEmpty(queryModel.getCourtName())) {
+            dbList = dbList.stream().filter(i->i.getCourtName().contains(queryModel.getCourtName())).collect(Collectors.toList());
+        }
+        // 数据是空的直接返回
+        if (CollUtil.isEmpty(dbList)){
+            return PageUtils.convertPageResult(new ArrayList<>(),page);
+        }
+        // 查询已经全部的球场信息
+        List<String> collectedCourt = new ArrayList<>();
+        if (queryModel.getUid() != null) {
+            collectedCourt = userCollectMapService.queryUserCollectedCourt(queryModel);
+        }
+        List<TennisCourtMapDto> resultList = handlerMapResult(queryModel, dbList, collectedCourt);
+        // 后面需要删除
+        if (queryModel.getSize() <= 10 && resultList.size() > queryModel.getSize()){
+            resultList = resultList.subList(0,queryModel.getSize());
+        }
+        return PageUtils.convertPageResult(resultList,page);
 
     }
 
@@ -215,4 +228,13 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         courtMap.setLbsDistance((int)meter1);
     }
 
+
+    /**
+     * 清空缓存
+     * @param city
+     */
+    public void clearQueryCache(String city){
+        String cacheKey = "COURT:" + city;
+        courtCache.remove(cacheKey);
+    }
 }
