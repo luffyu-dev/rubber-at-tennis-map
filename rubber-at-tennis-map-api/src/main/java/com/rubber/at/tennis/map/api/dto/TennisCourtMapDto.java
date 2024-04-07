@@ -1,7 +1,11 @@
 package com.rubber.at.tennis.map.api.dto;
 
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -143,11 +147,29 @@ public class TennisCourtMapDto {
      * lbs的定位距离
      * 单位是米
      */
-    private Integer lbsDistance = 0;
+    private double lbsDistance = 0;
 
 
     /**
      * 是否收藏了球场
      */
     private boolean collected;
+
+
+
+    /**
+     * 价格详情
+     */
+    private String fee;
+
+    /**
+     * 价格详情
+     */
+    private List<List<CourtFeeGroupDto>> feeInfoGroupList;
+
+
+    /**
+     * 球场标签
+     */
+    private List<String> courtTagList;
 }

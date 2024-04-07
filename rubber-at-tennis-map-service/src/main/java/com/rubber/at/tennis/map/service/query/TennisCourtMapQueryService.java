@@ -6,9 +6,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.rubber.at.tennis.map.api.TennisCourtMapQueryApi;
+import com.rubber.at.tennis.map.api.dto.CourtFeeGroupDto;
 import com.rubber.at.tennis.map.api.dto.TennisCourtMapDto;
 import com.rubber.at.tennis.map.api.enums.CourtMapStatusEnums;
 import com.rubber.at.tennis.map.api.request.RegionQueryRequest;
@@ -19,22 +19,16 @@ import com.rubber.at.tennis.map.dao.entity.UserCollectCourtEntity;
 import com.rubber.at.tennis.map.service.apply.UserCollectCourtService;
 import com.rubber.base.components.mysql.utils.PageUtils;
 import com.rubber.base.components.util.LbsUtils;
-import com.rubber.base.components.util.result.page.BaseRequestPage;
 import com.rubber.base.components.util.result.page.ResultPage;
 import lombok.extern.slf4j.Slf4j;
-import org.gavaghan.geodesy.Ellipsoid;
-import org.gavaghan.geodesy.GeodeticCalculator;
-import org.gavaghan.geodesy.GeodeticCurve;
-import org.gavaghan.geodesy.GlobalCoordinates;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -213,6 +207,33 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
         if (StrUtil.isNotEmpty(courtMapEntity.getReserveInfo())){
             dto.setReserveInfo(JSON.parseObject(courtMapEntity.getReserveInfo()));
         }
+        if (StrUtil.isNotEmpty(courtMapEntity.getFeeInfo())){
+            List<CourtFeeGroupDto.CourtFeeDto> courtFeeList = JSON.parseArray(courtMapEntity.getFeeInfo(), CourtFeeGroupDto.CourtFeeDto.class);
+            courtFeeList.forEach(i->{
+                i.setTimeKey(i.getDay1()+"至"+i.getDay2());
+            });
+            /**
+             * key为 场地类型
+             */
+            Map<String, List<CourtFeeGroupDto.CourtFeeDto>> courtTypeGroup = courtFeeList.stream().collect(Collectors.groupingBy(CourtFeeGroupDto.CourtFeeDto::getCourtType));
+            List<List<CourtFeeGroupDto>> feeGroupDtoMap = new ArrayList<>();
+            for (String courtType:courtTypeGroup.keySet()){
+                List<CourtFeeGroupDto.CourtFeeDto> courtFeeDtos = courtTypeGroup.get(courtType);
+
+                List<CourtFeeGroupDto> feeGroupDtoList = new ArrayList<>();
+                Map<String, List<CourtFeeGroupDto.CourtFeeDto>> timeKeyCollect = courtFeeDtos.stream().collect(Collectors.groupingBy(CourtFeeGroupDto.CourtFeeDto::getTimeKey));
+                for (String timeKey:timeKeyCollect.keySet()){
+                    CourtFeeGroupDto groupDto = new CourtFeeGroupDto(timeKey);
+                    groupDto.setFeeDtoList(timeKeyCollect.get(timeKey));
+                    feeGroupDtoList.add(groupDto);
+                }
+                feeGroupDtoMap.add(feeGroupDtoList);
+            }
+            dto.setFeeInfoGroupList(feeGroupDtoMap);
+        }
+        if (StrUtil.isNotEmpty(courtMapEntity.getCourtTag())){
+            dto.setCourtTagList(Arrays.asList(courtMapEntity.getCourtTag().split(",")));
+        }
         return dto;
     }
 
@@ -225,7 +246,12 @@ public class TennisCourtMapQueryService implements TennisCourtMapQueryApi {
             return;
         }
         double meter1 = LbsUtils.getDistance(queryModel.getLatitude(),queryModel.getLongitude(),courtMap.getLatitude(),courtMap.getLongitude());
-        courtMap.setLbsDistance((int)meter1);
+
+        BigDecimal bigDecimal = new BigDecimal(meter1);
+        bigDecimal = bigDecimal.divide(new BigDecimal(1000),1, RoundingMode.DOWN);
+        double v = bigDecimal.doubleValue();
+        v = Math.max(v,0.1);
+        courtMap.setLbsDistance(v);
     }
 
 

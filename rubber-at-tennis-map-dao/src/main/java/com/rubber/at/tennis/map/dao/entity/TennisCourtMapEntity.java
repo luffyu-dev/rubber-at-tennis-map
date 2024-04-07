@@ -194,4 +194,22 @@ public class TennisCourtMapEntity extends BaseEntity {
     private Date updateTime;
 
 
+    /**
+     * 价格详情
+     */
+    @TableField("Ffee")
+    private String fee;
+
+    /**
+     * 价格详情
+     */
+    @TableField("Ffee_info")
+    private String feeInfo;
+
+
+    /**
+     * 球场标签
+     */
+    @TableField("Fcourt_tag")
+    private String courtTag;
 }
