@@ -1,5 +1,6 @@
 package com.rubber.at.tennis.map.service.apply;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -62,6 +63,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
             BeanUtils.copyProperties(applyModel,courtMap,"courtCode");
             courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
             courtMap.setUpdateTime(new Date());
+            if (CollUtil.isNotEmpty(applyModel.getCourtTagList())){
+                courtMap.setCourtTag(CollUtil.join(applyModel.getCourtTagList(),","));
+            }
             if (applyModel.getReserveInfo() != null){
                 courtMap.setReserveInfo(applyModel.getReserveInfo().toJSONString());
             }
@@ -69,6 +73,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
         }else {
             courtMap = new TennisCourtMapEntity();
             BeanUtils.copyProperties(applyModel,courtMap);
+            if (CollUtil.isNotEmpty(applyModel.getCourtTagList())){
+                courtMap.setCourtTag(CollUtil.join(applyModel.getCourtTagList(),","));
+            }
             courtMap.setCourtCode(PREFIX + IdUtil.nanoId(16));
             courtMap.setStatus(CourtMapStatusEnums.ON.getStatus());
             courtMap.setReporter(String.valueOf(applyModel.getUid()));

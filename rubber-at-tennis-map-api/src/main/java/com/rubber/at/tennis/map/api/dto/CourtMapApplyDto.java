@@ -5,6 +5,7 @@ import com.rubber.base.components.util.session.BaseUserSession;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author luffyu
@@ -115,5 +116,21 @@ public class CourtMapApplyDto extends BaseUserSession {
      * 场地管理员
      */
     private String manager;
+
+
+    /**
+     * 标签集合
+     */
+    private List<String> courtTagList;
+
+    /**
+     * 价格详情
+     */
+    private String fee;
+
+    /**
+     * 价格详情
+     */
+    private String feeInfo;
 
 }
