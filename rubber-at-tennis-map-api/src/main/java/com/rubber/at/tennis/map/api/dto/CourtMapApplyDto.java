@@ -131,6 +131,6 @@ public class CourtMapApplyDto extends BaseUserSession {
     /**
      * 价格详情
      */
-    private String feeInfo;
+    private JSONObject feeInfo;
 
 }

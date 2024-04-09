@@ -69,6 +69,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
             if (applyModel.getReserveInfo() != null){
                 courtMap.setReserveInfo(applyModel.getReserveInfo().toJSONString());
             }
+            if (applyModel.getFeeInfo() != null){
+                courtMap.setFeeInfo(applyModel.getFeeInfo().toJSONString());
+            }
             iTennisCourtMapDal.updateById(courtMap);
         }else {
             courtMap = new TennisCourtMapEntity();
@@ -83,6 +86,9 @@ public class TennisCourtMapApplyService implements TennisCourtMapApplyApi {
             courtMap.setUpdateTime(new Date());
             if (applyModel.getReserveInfo() != null){
                 courtMap.setReserveInfo(applyModel.getReserveInfo().toJSONString());
+            }
+            if (applyModel.getFeeInfo() != null){
+                courtMap.setFeeInfo(applyModel.getFeeInfo().toJSONString());
             }
             iTennisCourtMapDal.save(courtMap);
         }
